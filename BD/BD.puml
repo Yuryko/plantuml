@@ -1,0 +1,77 @@
+@startuml
+entity "Шейпы" {
+    + shape_id : INT <<PK>>
+    + node_id : INT <<PK>>
+    + shape_start_x : INT
+    + shape_start_y : INT
+    + shape_end_x : INT
+    + shape_end_y : INT
+    + x_node : INT
+    + y_node : INT
+}
+note right of Шейпы
+Шейп - прямоуголькник
+с одной нодой
+end note
+entity "Вершины_Х" {
+    + x_id : INT <<PK>>
+    + x : INT
+    + x_0 : INT
+    + x_end : INT
+}
+
+entity "Вершины_Y" {
+    + y_id : INT <<PK>>
+    + y : INT
+    + y_0 : INT
+    + y_end : INT
+}
+entity "Срезы_дизайна" {
+    + slice_id : INT <<PK>>
+    + slice_start_x : INT 
+    + slice_start_y : INT 
+    + slice_finish_x : INT
+    + slice_finish_y : INT
+    + all_entrance_AppCap2D : TEXT
+}
+note top of Срезы_дизайна
+all_entrance_AppCap2D -
+это весь срез в формате 
+надо разбивать.
+end note
+
+entity "Фрагменты_среза" {
+    + fragment_id : INT <<PK>>
+    + fragment_start_x : INT 
+    + fragment_start_y : INT 
+    + fragment_finish_x : INT
+    + fragment_finish_y : INT
+    + entrance_AppCap2D : TEXT
+    + solve_AppCap2D : TEXT
+}
+note top of Фрагменты_среза
+Фрагмент среза хранит
+вход на решатель и 
+ответ решателя
+end note
+entity "Емкости" {
+    + capasitor_id : INT <<PK>>
+    + net_id : INT <<FK>>
+    + node_id_1 : INT <<FK>>
+    + node_id_2 : INT  <<FK>>
+    + value : DECIMAL
+}
+entity "Цепи" {
+    + net_id : INT <<PK>>
+    + nodes : INT <<FK>>
+    + capasitors: INT
+}
+
+Вершины_Х }o--{ Шейпы
+Вершины_Y }o--{ Шейпы
+Срезы_дизайна ||--|| Вершины_Х
+Срезы_дизайна ||--|| Вершины_Y
+Срезы_дизайна }o--|| Фрагменты_среза
+Емкости }o--o{ Шейпы
+Цепи ||--o{ Емкости
+@enduml
