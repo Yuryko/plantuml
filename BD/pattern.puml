@@ -1,0 +1,176 @@
+@startuml
+title База данных для хранения промежуточных данных при вычислении паразитных емкостей и сопротивлений.
+note as N1
+Алгоритм экстракции паразитных R, C элементов:
+Топология слоев разбивается на прямоугольники **(shapes)**,
+в каждом определяются координаты ноды **(nodes)**,
+связанной с определенной цепью **(nets)**
+
+Вычисляются паразитные сопротивления **(resistors)**,
+привязанные к нодам.
+
+Координаты вершин прямоугольников **(vertexes_x, vertexes_y)**
+сортируются и удаляются дублирующие.
+По всем координатам делаются вертикальные и 
+горизонтальные срезы всего дизайна **(slices)**.
+
+Срезы делятся на фрагменты **(fragments)**,
+для которых определяются погонные емкости **(solve)**.
+
+Используя информацию о координатах следующего среза
+вычисляются паразитные емкости **(capacitors)**,
+привязанные к нодам.
+end note
+
+entity "slices" {
+    + slice_id : INT <<PK>>
+    + slice_start_x : INT 
+    + slice_start_y : INT 
+    + slice_finish_x : INT
+    + slice_finish_y : INT
+
+    + shapes: INT
+    
+    + layer_top2: INT
+    + layer_top1: INT
+    + layer: INT
+    + layer_bottom1: INT
+    + layer_bottom2: INT
+    
+    + all_entrance_appсap2d : TEXT
+    + all_entrance_faster_cap : TEXT
+}
+note left of slices
+Срезы всего дизайна.
+Для вертикальных срезов:
+slice_start_y = 0
+slice_finish_y = 0
+для горизонтальных:
+slice_start_x = 0
+slice_finish_x = 0
+
+Зная координаты, можем 
+определить **shapes**
+
+Геометрия храниться в 
+виде входа на решатели, 
+где номера цепей это shapes_id.
+end note
+entity "shapes" {
+    + shape_id : INT <<PK>>
+    + node_id : INT <<FK>>
+    + layer : INT
+    + shape_x1 : INT
+    + shape_y1 : INT
+    + shape_x2 : INT
+    + shape_y2 : INT
+    + shape_x3 : INT
+    + shape_y3 : INT
+    + shape_x4 : INT
+    + shape_y4 : INT
+}
+note bottom of shapes
+Шейп - прямоуголькник
+с одной нодой, 
+shape_id = node_id
+end note
+entity "nodes" {
+    + node_id : INT <<PK>>
+    + net : INT <<FK>>
+    + layer : INT
+    + node_x : INT
+    + node_y : INT
+}
+entity "vertexes_x" {
+    + x_id : INT <<PK>>
+    + layer : INT
+    + value : INT
+}
+entity "vertexes_y" {
+    + y_id : INT <<PK>>
+    + layer : INT
+    + value : INT
+}
+entity "fragments" {
+    + fragment_id : INT <<PK>>
+    + fragment_start_x : INT 
+    + fragment_start_y : INT 
+    + fragment_finish_x : INT
+    + fragment_finish_y : INT
+
+    + shapes: INT
+    
+    + layer_top2: INT
+    + layer_top1: INT
+    + layer: INT
+    + layer_bottom1: INT
+    + layer_bottom2: INT
+    
+    + entrance_appcap2d : TEXT
+    + entrance_faster_cap : TEXT
+    + solve : INT <<FK>>
+}
+note top  of fragments
+"Нарезка" среза на фрагменты,
+каждый фрагмент.
+
+Геометрия храниться в 
+виде входа на решатели, 
+где номера цепей это shapes_id
+end note
+
+entity "solves" {
+    + solve_id : INT <<PK>>
+    + fragment : INT <<PK>>
+       
+    + solve : TEXT
+}
+note bottom of solves
+Зная координаты шейпов 
+и фрагментов можно
+вычислить реальные емкости,
+привязанные к нодам 
+end note
+entity "capacitors" {
+    + capasitor: INT <<PK>>
+    + node_1 : INT
+    + node_2 : INT
+    + value : DECIMAL
+}
+note left of capacitors
+Вычисленные емкости,
+привязанные к нодам
+end note
+entity "resistors" {
+    + resistor_id : INT <<PK>>
+    + node_1 : INT
+    + node_2 : INT
+    + value : DECIMAL
+}
+note right of resistors
+Вычисленные сопротивления,
+привязанные к нодам
+end note
+entity "nets" {
+    + net_id : INT <<PK>>
+    + nodes : INT
+    + capasitors: INT
+    + resistors : INT
+}
+shapes }o--o{ nodes
+vertexes_x ||--|| shapes
+vertexes_y ||--|| shapes
+vertexes_x ||--|| fragments
+vertexes_y ||--|| fragments
+fragments ||--|| shapes
+fragments }o--o{ solves
+
+slices ||--|| shapes
+slices ||--|| vertexes_x
+slices ||--|| vertexes_y
+capacitors ||--||  nodes
+resistors ||--|| nodes
+nets ||--o{ capacitors
+nets ||--o{ resistors
+nodes }o--|| nets
+@enduml
