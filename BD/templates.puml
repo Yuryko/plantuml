@@ -1,0 +1,15 @@
+@startuml
+title База шаблонов.
+
+entity "templates" {
+    + shablon_id : INT <<PK>>
+    + entrance_xml : TEXT
+    + solve: BLOB
+}
+note left of templates
+Геометрия в нашем формате xml.
+
+Погонные емкости в виде ответа
+appcap2D в формате BLOB.
+end note
+@enduml
